@@ -23,7 +23,7 @@ Run this command in your terminal to open a local server at localhost:8080
 npm run dev
 ```
 
-#Attribution
+# Attribution
 Original design created by Tom Bogner @dastom on Dribble: https://dribbble.com/shots/6767548-The-Three-Graces-Concept
 
 The GLTF used in this example was made by 3DLadnik: https://sketchfab.com/3DLadnik
