@@ -1,13 +1,10 @@
 /////////////////////////////////////////////////////////////////////////
 ///// IMPORT
 import './main.css'
-import * as THREE from 'three'
+import { Camera, Clock, Scene, WebGLRenderer, sRGBEncoding, Group, PerspectiveCamera, DirectionalLight, PointLight, MeshPhongMaterial } from 'three'
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
-// import { GUI } from 'three/examples/jsm/libs/dat.gui.module.js'
-// const gui = new GUI()
 
 /////////////////////////////////////////////////////////////////////////
 //// DRACO LOADER TO LOAD DRACO COMPRESSED MODELS FROM BLENDER
@@ -19,77 +16,74 @@ loader.setDRACOLoader(dracoLoader)
 
 /////////////////////////////////////////////////////////////////////////
 ///// DIV CONTAINER CREATION TO HOLD THREEJS EXPERIENCE
-const container = document.getElementById('canvas-container');
-const containerDetails = document.getElementById('canvas-container-details');
+const container = document.getElementById('canvas-container')
+const containerDetails = document.getElementById('canvas-container-details')
+
+/////////////////////////////////////////////////////////////////////////
+///// GENERAL VARIABLES
+let oldMaterial
+let secondContainer = false
+let width = container.clientWidth
+let height = container.clientHeight
 
 /////////////////////////////////////////////////////////////////////////
 ///// SCENE CREATION
-const scene = new THREE.Scene()
+const scene = new Scene()
 
 /////////////////////////////////////////////////////////////////////////
 ///// RENDERER CONFIG
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true})
-renderer.autoClear = true;
+const renderer = new WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance"})
+renderer.autoClear = true
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1))
-renderer.setSize( container.clientWidth, container.clientHeight)
-renderer.outputEncoding = THREE.sRGBEncoding
+renderer.setSize( width, height)
+renderer.outputEncoding = sRGBEncoding
 container.appendChild(renderer.domElement)
 
-const renderer2 = new THREE.WebGLRenderer({ antialias: false})
+const renderer2 = new WebGLRenderer({ antialias: false})
 renderer2.setPixelRatio(Math.min(window.devicePixelRatio, 1))
-renderer2.setSize( container.clientWidth, container.clientHeight)
-renderer2.outputEncoding = THREE.sRGBEncoding
+renderer2.setSize( width, height)
+renderer2.outputEncoding = sRGBEncoding
 containerDetails.appendChild(renderer2.domElement)
-
 
 /////////////////////////////////////////////////////////////////////////
 ///// CAMERAS CONFIG
-const cameraGroup = new THREE.Group()
+const cameraGroup = new Group()
 scene.add(cameraGroup)
 
-const camera = new THREE.PerspectiveCamera(35, container.clientWidth / container.clientHeight, 1, 100)
+const camera = new PerspectiveCamera(35, width / height, 1, 100)
 camera.position.set(19,1.54,-0.1)
 cameraGroup.add(camera)
 
-const camera2 = new THREE.PerspectiveCamera(35, containerDetails.clientWidth / containerDetails.clientHeight, 1, 100)
+const camera2 = new PerspectiveCamera(35, containerDetails.clientWidth / containerDetails.clientHeight, 1, 100)
 camera2.position.set(1.9,2.7,2.7)
 camera2.rotation.set(0,1.1,0)
-
 scene.add(camera2)
 
 /////////////////////////////////////////////////////////////////////////
 ///// MAKE EXPERIENCE FULL SCREEN
 window.addEventListener('resize', () => {
-    const width = container.clientWidth
-    const height = container.clientHeight
-    camera.aspect = width / height
+    camera.aspect = container.clientWidth / container.clientHeight
     camera.updateProjectionMatrix()
     
     camera2.aspect = containerDetails.clientWidth / containerDetails.clientHeight
     camera2.updateProjectionMatrix()
 
-    renderer.setSize(width, height)
+    renderer.setSize(container.clientWidth, container.clientHeight)
     renderer2.setSize(containerDetails.clientWidth, containerDetails.clientHeight)
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1))
+    renderer2.setPixelRatio(Math.min(window.devicePixelRatio, 1))
 })
 
 /////////////////////////////////////////////////////////////////////////
-///// CREATE ORBIT CONTROLS
-const controls = new OrbitControls(camera, renderer.domElement)
-
-/////////////////////////////////////////////////////////////////////////
 ///// SCENE LIGHTS
-const sunLight = new THREE.DirectionalLight(0x435c72, 0.08)
+const sunLight = new DirectionalLight(0x435c72, 0.08)
 sunLight.position.set(-100,0,-100)
 scene.add(sunLight)
 
-const fillLight = new THREE.PointLight(0x88b2d9, 2.7, 4, 3)
+const fillLight = new PointLight(0x88b2d9, 2.7, 4, 3)
 fillLight.position.set(30,3,1.8)
 scene.add(fillLight)
-
-/////////////////////////////////////////////////////////////////////////
-let oldMaterial
 
 /////////////////////////////////////////////////////////////////////////
 ///// LOADING GLB/GLTF MODEL FROM BLENDER
@@ -98,39 +92,32 @@ loader.load('models/gltf/graces-draco2.glb', function (gltf) {
     gltf.scene.traverse((obj) => {
         if (obj.isMesh) {
             oldMaterial = obj.material
-            obj.material = new THREE.MeshPhongMaterial({
+            obj.material = new MeshPhongMaterial({
                 shininess: 45 
             })
         }
     })
-    clearScene()
     scene.add(gltf.scene)
+    clearScene()
 })
 
 function clearScene(){
     oldMaterial.dispose()
-    renderer.renderLists.dispose();
+    renderer.renderLists.dispose()
 }
 
 /////////////////////////////////////////////////////////////////////////
 //// INTRO CAMERA ANIMATION USING TWEEN
 function introAnimation() {
-    new TWEEN.Tween(camera.position.set(0,4,2.7)).to({ x: 0, y: 2, z: 8.8}, 3500).easing(TWEEN.Easing.Quadratic.InOut).start()
+    new TWEEN.Tween(camera.position.set(0,4,2.7)).to({ x: 0, y: 2.4, z: 8.8}, 3500).easing(TWEEN.Easing.Quadratic.InOut).start()
     .onComplete(function () {
         TWEEN.remove(this)
-    })
-    
-    new TWEEN.Tween(controls.target.set(0,6,-1.5)).to({ x: 0.2, y: 2.6, z: -0.3}, 3500).easing(TWEEN.Easing.Quadratic.InOut).start()
-    .onComplete(function () {
         document.querySelector('.header').classList.add('ended')
         document.querySelector('.first>p').classList.add('ended')
-        TWEEN.remove(this)
     })
+    
 }
-controls.enabled = false
-
 introAnimation()
-
 
 //////////////////////////////////////////////////
 //// CLICK LISTENERS
@@ -138,17 +125,8 @@ document.getElementById('aglaea').addEventListener('click', () => {
     document.getElementById('aglaea').classList.add('active')
     document.getElementById('euphre').classList.remove('active')
     document.getElementById('thalia').classList.remove('active')
-    document.getElementById('content').innerHTML = 'She was venerated as the goddess of beauty, splendor, glory, magnificence, and adornment. She is the youngest of the Charites according to Hesiod.[4] Aglaea is one of three daughters of Zeus and either the Oceanid Eurynome, or of Eunomia, the goddess of good order and lawful conduct.'
-
-    new TWEEN.Tween(camera2.position).to({ x: 1.9, y: 2.7, z: 2.7 }, 1800).easing(TWEEN.Easing.Quadratic.InOut).start()
-    .onComplete(function () {
-        TWEEN.remove(this)
-    })
-    new TWEEN.Tween(camera2.rotation).to({ y: 1.1 }, 1800).easing(TWEEN.Easing.Quadratic.InOut).start()
-    .onComplete(function () {
-        TWEEN.remove(this)
-    })
-    
+    document.getElementById('content').innerHTML = 'She was venerated as the goddess of beauty, splendor, glory, magnificence, and adornment. She is the youngest of the Charites according to Hesiod. Aglaea is one of three daughters of Zeus and either the Oceanid Eurynome, or of Eunomia, the goddess of good order and lawful conduct.'
+    animateCamera({ x: 1.9, y: 2.7, z: 2.7 },{ y: 1.1 })
 })
 
 document.getElementById('thalia').addEventListener('click', () => {
@@ -156,16 +134,7 @@ document.getElementById('thalia').addEventListener('click', () => {
     document.getElementById('aglaea').classList.remove('active')
     document.getElementById('euphre').classList.remove('active')
     document.getElementById('content').innerHTML = 'Thalia, in Greek religion, one of the nine Muses, patron of comedy; also, according to the Greek poet Hesiod, a Grace (one of a group of goddesses of fertility). She is the mother of the Corybantes, celebrants of the Great Mother of the Gods, Cybele, the father being Apollo, a god related to music and dance. In her hands she carried the comic mask and the shepherd’s staff.'
-
-    new TWEEN.Tween(camera2.position).to({ x: -0.9, y: 3.1, z: 2.6 }, 1800).easing(TWEEN.Easing.Quadratic.InOut).start()
-    .onComplete(function () {
-        TWEEN.remove(this)
-    })
-    new TWEEN.Tween(camera2.rotation).to({ y: -0.1 }, 1800).easing(TWEEN.Easing.Quadratic.InOut).start()
-    .onComplete(function () {
-        TWEEN.remove(this)
-    })
-    
+    animateCamera({ x: -0.9, y: 3.1, z: 2.6 },{ y: -0.1 })
 })
 
 document.getElementById('euphre').addEventListener('click', () => {
@@ -173,38 +142,40 @@ document.getElementById('euphre').addEventListener('click', () => {
     document.getElementById('aglaea').classList.remove('active')
     document.getElementById('thalia').classList.remove('active')
     document.getElementById('content').innerHTML = 'Euphrosyne is a Goddess of Good Cheer, Joy and Mirth. Her name is the female version of a Greek word euphrosynos, which means "merriment". The Greek poet Pindar states that these goddesses were created to fill the world with pleasant moments and good will. Usually the Charites attended the goddess of beauty Aphrodite.'
-
-    new TWEEN.Tween(camera2.position).to({ x: -0.4, y: 2.7, z: 1.9 }, 1800).easing(TWEEN.Easing.Quadratic.InOut).start()
-    .onComplete(function () {
-        TWEEN.remove(this)
-    })
-    new TWEEN.Tween(camera2.rotation).to({ y: -0.6 }, 1800).easing(TWEEN.Easing.Quadratic.InOut).start()
-    .onComplete(function () {
-        TWEEN.remove(this)
-    })
-    
+    animateCamera({ x: -0.4, y: 2.7, z: 1.9 },{ y: -0.6 })
 })
 
 /////////////////////////////////////////////////////////////////////////
+//// ANIMATE CAMERA
+function animateCamera(position, rotation){
+    new TWEEN.Tween(camera2.position).to(position, 1800).easing(TWEEN.Easing.Quadratic.InOut).start()
+    .onComplete(function () {
+        TWEEN.remove(this)
+    })
+    new TWEEN.Tween(camera2.rotation).to(rotation, 1800).easing(TWEEN.Easing.Quadratic.InOut).start()
+    .onComplete(function () {
+        TWEEN.remove(this)
+    })
+}
+
+/////////////////////////////////////////////////////////////////////////
 //// PARALLAX CONFIG
-const cursor = {}
-cursor.x = 0
-cursor.y = 0
-const clock = new THREE.Clock()
+const cursor = {x:0,y:0}
+const clock = new Clock()
 let previousTime = 0
 
 /////////////////////////////////////////////////////////////////////////
 //// RENDER LOOP FUNCTION
+
 function rendeLoop() {
 
-    TWEEN.update() // update animations
+    TWEEN.update()
 
-    controls.update() // update orbit controls
-
-    renderer.render(scene, camera) // render the scene using the camera
-    renderer2.render(scene, camera2) // render the scene using the camera
-
-    requestAnimationFrame(rendeLoop) //loop the render function
+    if (secondContainer){
+        renderer2.render(scene, camera2)
+    } else{
+        renderer.render(scene, camera)
+    }
 
     const elapsedTime = clock.getElapsedTime()
     const deltaTime = elapsedTime - previousTime
@@ -216,9 +187,10 @@ function rendeLoop() {
     const parallaxX = cursor.x
     fillLight.position.x += (parallaxX *8 - fillLight.position.x) * 2 * deltaTime
 
-    // cameraGroup.position.y -= (parallaxY + cameraGroup.position.y) * 2 * deltaTime
-    cameraGroup.position.x += (parallaxX - cameraGroup.position.x) * 2 * deltaTime
+    cameraGroup.position.z -= (parallaxY/3 + cameraGroup.position.z) * 2 * deltaTime
+    cameraGroup.position.x += (parallaxX/3 - cameraGroup.position.x) * 2 * deltaTime
 
+    requestAnimationFrame(rendeLoop)
 }
 
 rendeLoop()
@@ -228,19 +200,53 @@ rendeLoop()
 document.addEventListener('mousemove', (event) => {
     event.preventDefault()
 
-    cursor.x = event.clientX / container.clientWidth -0.5
-    cursor.y = event.clientY / container.clientHeight -0.5
-    // console.log(camera2.position)
-    // console.log(controls.target)
-
+    if(!secondContainer){
+        cursor.x = event.clientX / container.clientWidth -0.5
+        cursor.y = event.clientY / container.clientHeight -0.5
+    }
+    handleCursor(event)
 }, false)
 
-// under development... stop execution when isn't visible to gain performance
-const watch = document.querySelector('.second')
+//////////////////////////////////////////////////
+//// DISABLE RENDERER BASED ON CONTAINER VIEW
+const watchedSection = document.querySelector('.second')
 
 function obCallback(payload) {
-    console.log(payload);
+    if (payload[0].intersectionRatio > 0.05){
+        secondContainer = true
+    }else{
+        secondContainer = false
+    }
 }
 
-const ob = new IntersectionObserver(obCallback);
-ob.observe(watch);
+const ob = new IntersectionObserver(obCallback, {
+    threshold: 0.05
+})
+
+ob.observe(watchedSection)
+
+//////////////////////////////////////////////////
+//// MAGNETIC MENU
+const btn = document.querySelectorAll('nav > .a')
+const customCursor = document.querySelector('.cursor')
+
+function update(e) {
+    const span = this.querySelector('span')
+    
+    if(e.type === 'mouseleave') {
+        span.style.cssText = ''
+    } else {
+        const { offsetX: x, offsetY: y } = e,{ offsetWidth: width, offsetHeight: height } = this,
+        walk = 20, xWalk = (x / width) * (walk * 2) - walk, yWalk = (y / height) * (walk * 2) - walk
+        span.style.cssText = `transform: translate(${xWalk}px, ${yWalk}px);`
+    }
+}
+
+const handleCursor = (e) => {
+    const x = e.clientX
+    const y =  e.clientY
+    customCursor.style.cssText =`left: ${x}px; top: ${y}px;`
+}
+
+btn.forEach(b => b.addEventListener('mousemove', update))
+btn.forEach(b => b.addEventListener('mouseleave', update))

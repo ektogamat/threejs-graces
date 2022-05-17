@@ -1,11 +1,58 @@
 body, html {
 	margin: 0;
 	padding: 0;
-	overscroll-behavior: none;
+    overscroll-behavior: none;
     font-family: 'Nanum Myeongjo', serif;
     color: #fff;
     background: #050505;
-    cursor: url(../static/textures/cursor.png) 16 16,auto;
+    /* cursor: url(../static/textures/cursor.png) 16 16,auto; */
+}
+
+nav { width: 100%; padding: 1rem; position: fixed;  z-index: 2;}
+
+span {
+	display: inline-block;
+	pointer-events: none;
+	transition: transform 0.1s linear;
+}
+
+.cursor { 
+	pointer-events: none;
+	position: fixed; 
+    top: 10px; 
+    left: 10px;
+	padding: 10px;
+	background-color: #fff;
+	border-radius: 50%; 
+	transform: translate(-50%, -50%);
+	mix-blend-mode: difference;
+	transition: transform .8s ease, opacity 0.6s ease;
+	z-index: 2;
+}
+
+/* .cursor:has(.a:hover){
+    transform: translate(-50%, -50%) scale(4); opacity: 0.3;
+} */
+
+.a { 
+	display: inline-block; 
+	color: #fff; 
+	padding: 1rem;
+    margin-right: 4rem;
+    letter-spacing: .4em;
+    font-size: .9em;
+	transition: all 0.3s ease, color 0.3s ease;
+}
+
+nav.header .a:hover{
+    cursor: pointer;
+    color: rgb(175, 175, 175); 
+    transform: scale(1.1); 
+
+}
+
+nav.header .a:hover ~ .cursor {
+    transform: translate(-50%, -50%) scale(5); opacity: 0.1; 
 }
 
 .dg.ac {
@@ -17,6 +64,7 @@ body, html {
 }
 
 #canvas-container{
+    pointer-events: none;
     position: absolute;
     top: 0;
     left: 0;
@@ -31,6 +79,7 @@ body, html {
 }
 
 #canvas-container-details{
+    pointer-events: none;
     position: absolute;
     top: 0;
     left: 0;
@@ -66,7 +115,6 @@ body, html {
 
 
 .header {
-    pointer-events: none;
     position: absolute;
     top: -2em;
     left: 0;
@@ -75,13 +123,15 @@ body, html {
     width: 100%;
     text-align: center;
     font-family: 'Josefin Sans', sans-serif;
-    z-index: 1;
+    z-index: 2;
     opacity: 0;
     transition: all 1.9s ease-in-out ;
+    padding: 0;
+    margin: 0;
 
 }
 .header.ended{
-    top: 4em;
+    top: 3em;
     opacity: 1;
 }
 
@@ -226,14 +276,16 @@ body, html {
 .second-container>ul>li{
     padding-right: 20px;
     transition: all 0.8s ease-out;
-
-   
 }
 
 .second-container>ul>li:hover{
     color:whitesmoke;
     pointer-events: all;
     cursor: pointer;
+}
+
+.second-container>ul>li:hover > nav.header>.cursor{
+    transform: translate(-50%, -50%) scale(5); opacity: 1; 
 }
 
 .second-container>ul>li.active{
