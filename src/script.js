@@ -1,17 +1,41 @@
 /////////////////////////////////////////////////////////////////////////
 ///// IMPORT
 import './main.css'
-import { Camera, Clock, Scene, WebGLRenderer, sRGBEncoding, Group, PerspectiveCamera, DirectionalLight, PointLight, MeshPhongMaterial } from 'three'
+import { Clock, Scene, LoadingManager, WebGLRenderer, sRGBEncoding, Group, PerspectiveCamera, DirectionalLight, PointLight, MeshPhongMaterial } from 'three'
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+
+/////////////////////////////////////////////////////////////////////////
+//// LOADING MANAGER
+const ftsLoader = document.querySelector(".lds-roller")
+const looadingCover = document.getElementById("loading-text-intro")
+const loadingManager = new LoadingManager()
+
+loadingManager.onLoad = function() {
+
+    document.querySelector(".main-container").style.visibility = 'visible'
+    document.querySelector("body").style.overflow = 'auto'
+
+    const yPosition = {y: 0}
+    
+    new TWEEN.Tween(yPosition).to({y: 100}, 900).easing(TWEEN.Easing.Quadratic.InOut).start()
+    .onUpdate(function(){ looadingCover.style.setProperty('transform', `translate( 0, ${yPosition.y}%)`)})
+    .onComplete(function () {looadingCover.parentNode.removeChild(document.getElementById("loading-text-intro")); TWEEN.remove(this)})
+
+    introAnimation()
+    ftsLoader.parentNode.removeChild(ftsLoader)
+
+    window.scroll(0, 0)
+
+}
 
 /////////////////////////////////////////////////////////////////////////
 //// DRACO LOADER TO LOAD DRACO COMPRESSED MODELS FROM BLENDER
 const dracoLoader = new DRACOLoader()
-const loader = new GLTFLoader()
-dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/')
+dracoLoader.setDecoderPath('/draco/')
 dracoLoader.setDecoderConfig({ type: 'js' })
+const loader = new GLTFLoader(loadingManager)
 loader.setDRACOLoader(dracoLoader)
 
 /////////////////////////////////////////////////////////////////////////
@@ -117,7 +141,6 @@ function introAnimation() {
     })
     
 }
-introAnimation()
 
 //////////////////////////////////////////////////
 //// CLICK LISTENERS
@@ -160,7 +183,7 @@ function animateCamera(position, rotation){
 
 /////////////////////////////////////////////////////////////////////////
 //// PARALLAX CONFIG
-const cursor = {x:0,y:0}
+const cursor = {x:0, y:0}
 const clock = new Clock()
 let previousTime = 0
 
@@ -200,10 +223,9 @@ rendeLoop()
 document.addEventListener('mousemove', (event) => {
     event.preventDefault()
 
-    if(!secondContainer){
-        cursor.x = event.clientX / container.clientWidth -0.5
-        cursor.y = event.clientY / container.clientHeight -0.5
-    }
+    cursor.x = event.clientX / window.innerWidth -0.5
+    cursor.y = event.clientY / window.innerHeight -0.5
+
     handleCursor(event)
 }, false)
 
