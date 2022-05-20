@@ -9,10 +9,6 @@ body {
     overflow: hidden;
 }
 
-.main-container{
-    visibility: hidden;
-}
-
 .lds-roller {
 	width: 80px;
 	height: 80px;
